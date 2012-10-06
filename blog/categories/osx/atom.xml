@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: OSX | WilburDing's Blog]]></title>
+  <link href="http://wilburding.github.com/blog/categories/osx/atom.xml" rel="self"/>
+  <link href="http://wilburding.github.com/"/>
+  <updated>2012-10-06T23:05:56+08:00</updated>
+  <id>http://wilburding.github.com/</id>
+  <author>
+    <name><![CDATA[Wilbur Ding]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[手工安装OSX上的支付宝插件]]></title>
+    <link href="http://wilburding.github.com/blog/2012/10/06/manually-install-alipay-plugin/"/>
+    <updated>2012-10-06T22:31:00+08:00</updated>
+    <id>http://wilburding.github.com/blog/2012/10/06/manually-install-alipay-plugin</id>
+    <content type="html"><![CDATA[<p>支付宝在OSX里的插件一直安装不能，因为一个"empty alias"的问题。本来想等着支付宝能哪天更新下解决的，结果等到现在也不行，无奈只好自己手动装了。
+虽然没仔细研究过OSX上的软件安装流程，但大概是直接把.application那个文件夹拖到目标目录就可以了。所以需要先知道那个"empty alias"原来要指到哪里的。google了一番，找到了google earth还有一些其他插件的说明文档，说放到 /Library/Internet Plug-ins 里。一开始脑袋短路了，在~/下面找那个目录，结果没找到自己新建了个，加上搜索的时候出现了好几个目录名（Internet Plugins/Internet Plugin/Internet
+Plug-ins什么的），试了半天无果。最后终于找到了正确位置，发现已经有好几个插件了，然后把wkaliedit.dmg里的aliedit.plugin直接拽过去，当然要提下权限。
+这么拽过去的插件还是不能用的，因为里面的文件的权限只对root开了rwx，而且还有apple的扩展属性xattr什么的需要清掉。大概的命令是：
+<code>bash
+cd /Library/Internet\ Plug-Ins
+sudo chmod a+rx aliedit.plugin
+sudo xattr -c -r aliedit.plugin
+cd aliedit.plugin
+find . -type d| sudo xargs chmod a+rw
+find . -type f| sudo xargs chmod a+r
+sudo chmod a+x Contents/MacOS/aliedit
+</code>
+这么搞之后，重启下浏览器，登陆alipay.com的时候的密码框应该就能用了。不过后来发现里面的支付密码框还是不能用的，暂时没弄清楚还，有了解的麻烦告知下，thx。</p>
+]]></content>
+  </entry>
+  
+</feed>
