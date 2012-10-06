@@ -11,7 +11,7 @@ rsync_delete   = true
 deploy_default = "push"
 
 # This will be configured for you when you run config_deploy
-deploy_branch  = "gh-pages"
+deploy_branch  = "master"
 
 ## -- Misc Configs -- ##
 
@@ -109,6 +109,7 @@ task :new_post, :title do |t, args|
     post.puts "categories: "
     post.puts "---"
   end
+  system "mvim #{filename}"
 end
 
 # usage rake new_page[my-new-page] or rake new_page[my-new-page.html] or rake new_page (defaults to "new-page.markdown")
