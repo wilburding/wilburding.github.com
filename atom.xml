@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[My Octopress Blog]]></title>
+  <title><![CDATA[WilburDing's Blog]]></title>
   <link href="http://wilburding.github.com/atom.xml" rel="self"/>
   <link href="http://wilburding.github.com/"/>
-  <updated>2012-10-06T16:51:17+08:00</updated>
+  <updated>2012-10-06T21:05:45+08:00</updated>
   <id>http://wilburding.github.com/</id>
   <author>
     <name><![CDATA[Wilbur Ding]]></name>
