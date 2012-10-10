@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>WilburDing's Blog</title>
+  <title>Python的is和==操作符用法 - WilburDing's Blog</title>
   <meta name="author" content="Wilbur Ding">
 
   
@@ -25,7 +25,7 @@ if anotherVar is 1: blah 很明显这么用是错的，判断空链表应该用�
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://wilburding.github.com/">
+  <link rel="canonical" href="http://wilburding.github.com/blog/2012/10/10/on-pythons-is-and-equals-equals-operator/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -69,15 +69,12 @@ if anotherVar is 1: blah 很明显这么用是错的，判断空链表应该用�
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article class="hentry" role="article">
   
-  
-  
-    <article>
-      
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2012/10/10/on-pythons-is-and-equals-equals-operator/">Python的is和==操作符用法</a></h1>
+      <h1 class="entry-title">Python的is和==操作符用法</h1>
     
     
       <p class="meta">
@@ -95,14 +92,14 @@ if anotherVar is 1: blah 很明显这么用是错的，判断空链表应该用�
 
 <time datetime="2012-10-10T23:44:00+08:00" pubdate data-updated="true">Oct 10<span>th</span>, 2012</time>
         
-         | <a href="/blog/2012/10/10/on-pythons-is-and-equals-equals-operator/#disqus_thread">Comments</a>
+         | <a href="#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>我只是想说下今天代码检查中遇到的一个问题，不做详细的说明。代码里有这种用法：</p>
+<div class="entry-content"><p>我只是想说下今天代码检查中遇到的一个问题，不做详细的说明。代码里有这种用法：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -150,82 +147,16 @@ if anotherVar is 1: blah 很明显这么用是错的，判断空链表应该用�
 
 <p><code>n is 1</code>返回True是由于Python对于小整数的优化（小整数都是预先创建好的，需要时直接使用），<code>a is 1000</code>返回False是因为一般的整数都是需要时直接创建的对象并且就算之前有相同的值的对象也不会复用。不过如果写<code>1000 is 1000</code>是会返回True的，因为这俩字面常量实际上引用了一个对象，这应该是编译器的优化吧。<code>[] is []</code>返回False就显而易见了，因为每个list都是全新的对象，不会复用已有的对象。</p>
 </div>
-  
-  
 
 
-    </article>
-  
-  
-    <article>
+  <footer>
+    <p class="meta">
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/10/06/manually-install-alipay-plugin/">手工安装OSX上的支付宝插件</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
   
 
+<span class="byline author vcard">Posted by <span class="fn">Wilbur Ding</span></span>
 
-<time datetime="2012-10-06T22:31:00+08:00" pubdate data-updated="true">Oct 6<span>th</span>, 2012</time>
-        
-         | <a href="/blog/2012/10/06/manually-install-alipay-plugin/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>支付宝在OSX里的插件一直安装不能，因为一个&#8221;empty alias&#8221;的问题。本来想等着支付宝能哪天更新下解决的，结果等到现在也不行，无奈只好自己手动装了。
-虽然没仔细研究过OSX上的软件安装流程，但大概是直接把.application那个文件夹拖到目标目录就可以了。所以需要先知道那个&#8221;empty alias&#8221;原来要指到哪里的。google了一番，找到了google earth还有一些其他插件的说明文档，说放到 /Library/Internet Plug-ins 里。一开始脑袋短路了，在~/下面找那个目录，结果没找到自己新建了个，加上搜索的时候出现了好几个目录名（Internet Plugins/Internet Plugin/Internet
-Plug-ins什么的），试了半天无果。最后终于找到了正确位置，发现已经有好几个插件了，然后把wkaliedit.dmg里的aliedit.plugin直接拽过去，当然要提下权限。
-这么拽过去的插件还是不能用的，因为里面的文件的权限只对root开了rwx，而且还有apple的扩展属性xattr什么的需要清掉。大概的命令是：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> /Library/Internet<span class="se">\ </span>Plug-Ins
-</span><span class='line'>sudo chmod a+rx aliedit.plugin
-</span><span class='line'>sudo xattr -c -r aliedit.plugin
-</span><span class='line'><span class="nb">cd </span>aliedit.plugin
-</span><span class='line'>find . -type d| sudo xargs chmod a+rw
-</span><span class='line'>find . -type f| sudo xargs chmod a+r
-</span><span class='line'>sudo chmod a+x Contents/MacOS/aliedit
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这么搞之后，重启下浏览器，登陆alipay.com的时候的密码框应该就能用了。不过后来发现里面的支付密码框还是不能用的，暂时没弄清楚还，有了解的麻烦告知下，thx。</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/10/06/hello-world/">Hello World</a></h1>
-    
-    
-      <p class="meta">
-        
 
 
 
@@ -237,29 +168,48 @@ Plug-ins什么的），试了半天无果。最后终于找到了正确位置，
   
 
 
-<time datetime="2012-10-06T16:07:00+08:00" pubdate data-updated="true">Oct 6<span>th</span>, 2012</time>
-        
-         | <a href="/blog/2012/10/06/hello-world/#disqus_thread">Comments</a>
-        
-      </p>
+<time datetime="2012-10-10T23:44:00+08:00" pubdate data-updated="true">Oct 10<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/python/'>Python</a>
+  
+</span>
+
+
+    </p>
     
-  </header>
-
-
-  <div class="entry-content"><p>Hello World!</p>
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://wilburding.github.com/blog/2012/10/10/on-pythons-is-and-equals-equals-operator/" data-via="WilburDing" data-counturl="http://wilburding.github.com/blog/2012/10/10/on-pythons-is-and-equals-equals-operator/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
 </div>
-  
-  
 
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/10/06/manually-install-alipay-plugin/" title="Previous Post: 手工安装OSX上的支付宝插件">&laquo; 手工安装OSX上的支付宝插件</a>
+      
+      
+    </p>
+  </footer>
+</article>
 
-    </article>
-  
-  <div class="pagination">
-    
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
+  </section>
+
+</div>
+
 <aside class="sidebar">
   
     <section>
@@ -285,7 +235,7 @@ Plug-ins什么的），试了半天无果。最后终于找到了正确位置，
 <section>
   <h1>Latest Tweets</h1>
   <ul id="tweets">
-    <li class="loading">Status updating&#8230;</li>
+    <li class="loading">Status updating...</li>
   </ul>
   <script type="text/javascript">
     $.domReady(function(){
@@ -301,13 +251,10 @@ Plug-ins什么的），试了半天无果。最后终于找到了正确位置，
 
 
 
-<section>
-  <h1>About Me</h1>
-  <p>I&#8217;m just a humble coder with some curiosity. </p>
-</section>
 
   
 </aside>
+
 
     </div>
   </div>
@@ -323,7 +270,10 @@ Plug-ins什么的），试了半天无果。最后终于找到了正确位置，
       var disqus_shortname = 'wilburdingsblog';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://wilburding.github.com/blog/2012/10/10/on-pythons-is-and-equals-equals-operator/';
+        var disqus_url = 'http://wilburding.github.com/blog/2012/10/10/on-pythons-is-and-equals-equals-operator/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

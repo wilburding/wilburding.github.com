@@ -4,7 +4,7 @@
   <title><![CDATA[WilburDing's Blog]]></title>
   <link href="http://wilburding.github.com/atom.xml" rel="self"/>
   <link href="http://wilburding.github.com/"/>
-  <updated>2012-10-06T23:05:56+08:00</updated>
+  <updated>2012-10-11T00:10:20+08:00</updated>
   <id>http://wilburding.github.com/</id>
   <author>
     <name><![CDATA[Wilbur Ding]]></name>
@@ -12,6 +12,61 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Python的is和==操作符用法]]></title>
+    <link href="http://wilburding.github.com/blog/2012/10/10/on-pythons-is-and-equals-equals-operator/"/>
+    <updated>2012-10-10T23:44:00+08:00</updated>
+    <id>http://wilburding.github.com/blog/2012/10/10/on-pythons-is-and-equals-equals-operator</id>
+    <content type="html"><![CDATA[<p>我只是想说下今天代码检查中遇到的一个问题，不做详细的说明。代码里有这种用法：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">if</span> <span class="n">someVar</span> <span class="ow">is</span> <span class="p">[]:</span>
+</span><span class='line'>    <span class="n">blah</span>
+</span><span class='line'><span class="err">…</span>
+</span><span class='line'><span class="k">if</span> <span class="n">anotherVar</span> <span class="ow">is</span> <span class="mi">1</span><span class="p">:</span>
+</span><span class='line'>    <span class="n">blah</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>很明显这么用是错的，判断空链表应该用隐式转换，值是否为1用==。当然为了说明清楚问题，稍微研究了一下。控制台里进行了这样的测试：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="o">&gt;&gt;&gt;</span> <span class="mi">1</span> <span class="o">==</span> <span class="mi">1</span>
+</span><span class='line'><span class="bp">True</span>
+</span><span class='line'><span class="o">&gt;&gt;&gt;</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class='line'><span class="o">&gt;&gt;&gt;</span> <span class="n">n</span> <span class="ow">is</span> <span class="mi">1</span>
+</span><span class='line'><span class="bp">True</span>
+</span><span class='line'><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1000</span>
+</span><span class='line'><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="ow">is</span> <span class="mi">1000</span>
+</span><span class='line'><span class="bp">False</span>
+</span><span class='line'><span class="o">&gt;&gt;&gt;</span> <span class="p">[]</span> <span class="ow">is</span> <span class="p">[]</span>
+</span><span class='line'><span class="bp">False</span>
+</span><span class='line'><span class="o">&gt;&gt;&gt;</span> <span class="p">[]</span> <span class="o">==</span> <span class="p">[]</span>
+</span><span class='line'><span class="bp">True</span>
+</span><span class='line'><span class="o">&gt;&gt;&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>n is 1</code>返回True是由于Python对于小整数的优化（小整数都是预先创建好的，需要时直接使用），<code>a is 1000</code>返回False是因为一般的整数都是需要时直接创建的对象并且就算之前有相同的值的对象也不会复用。不过如果写<code>1000 is 1000</code>是会返回True的，因为这俩字面常量实际上引用了一个对象，这应该是编译器的优化吧。<code>[] is []</code>返回False就显而易见了，因为每个list都是全新的对象，不会复用已有的对象。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[手工安装OSX上的支付宝插件]]></title>
