@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Python | WilburDing's Blog]]></title>
-  <link href="http://wilburding.github.com/blog/categories/python/atom.xml" rel="self"/>
+  <title><![CDATA[Category: Haskell | WilburDing's Blog]]></title>
+  <link href="http://wilburding.github.com/blog/categories/haskell/atom.xml" rel="self"/>
   <link href="http://wilburding.github.com/"/>
   <updated>2012-11-23T22:57:20+08:00</updated>
   <id>http://wilburding.github.com/</id>
@@ -98,50 +98,6 @@
 <p>代码的作用很简单，就是把数组的元素先平方再加1 。。</p>
 
 <p>另外，在写这篇文章的时候还发现了另一个<a href="http://www.valuedlessons.com/2008/01/monads-in-python-with-nice-syntax.html" title="Monads in Python (with nice syntax!)">blog</a>，比较详细的讲了一个要产品化的代码里使用的Python的Monad，嗯哼。。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Python的is和==操作符用法]]></title>
-    <link href="http://wilburding.github.com/blog/2012/10/10/on-pythons-is-and-equals-equals-operator/"/>
-    <updated>2012-10-10T23:44:00+08:00</updated>
-    <id>http://wilburding.github.com/blog/2012/10/10/on-pythons-is-and-equals-equals-operator</id>
-    <content type="html"><![CDATA[<p>我只是想说下今天代码检查中遇到的一个问题，不做详细的说明。代码里有这种用法：</p>
-
-<p>```python
-if someVar is []:</p>
-
-<pre><code>blah
-</code></pre>
-
-<p>…
-if anotherVar is 1:</p>
-
-<pre><code>blah
-</code></pre>
-
-<p>```</p>
-
-<p>很明显这么用是错的，判断空链表应该用隐式转换，值是否为1用==。当然为了说明清楚问题，稍微研究了一下。控制台里进行了这样的测试：</p>
-
-<p>```python</p>
-
-<blockquote><blockquote><blockquote><p>1 == 1
-True
-n = 1
-n is 1
-True
-a = 1000
-a is 1000
-False
-[] is []
-False
-[] == []
-True</p>
-
-<p>```</p></blockquote></blockquote></blockquote>
-
-<p><code>n is 1</code>返回True是由于Python对于小整数的优化（小整数都是预先创建好的，需要时直接使用），<code>a is 1000</code>返回False是因为一般的整数都是需要时直接创建的对象并且就算之前有相同的值的对象也不会复用。不过如果写<code>1000 is 1000</code>是会返回True的，因为这俩字面常量实际上引用了一个对象，这应该是编译器的优化吧。<code>[] is []</code>返回False就显而易见了，因为每个list都是全新的对象，不会复用已有的对象。</p>
 ]]></content>
   </entry>
   

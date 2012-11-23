@@ -4,7 +4,7 @@
   <title><![CDATA[WilburDing's Blog]]></title>
   <link href="http://wilburding.github.com/atom.xml" rel="self"/>
   <link href="http://wilburding.github.com/"/>
-  <updated>2012-11-03T21:10:03+08:00</updated>
+  <updated>2012-11-23T22:57:20+08:00</updated>
   <id>http://wilburding.github.com/</id>
   <author>
     <name><![CDATA[Wilbur Ding]]></name>
@@ -12,6 +12,85 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Python实现简单的Monad]]></title>
+    <link href="http://wilburding.github.com/blog/2012/11/23/simple-monad-in-python/"/>
+    <updated>2012-11-23T22:06:00+08:00</updated>
+    <id>http://wilburding.github.com/blog/2012/11/23/simple-monad-in-python</id>
+    <content type="html"><![CDATA[<p>今天看了一篇讲Ruby实现的Monad的文章（<a href="http://moonbase.rydia.net/mental/writings/programming/monads-in-ruby/00introduction">这里</a>），所以一时兴起就也想用Python写一个。So，心动不如行动。。</p>
+
+<p>在Haskell里，Monad就是用来把带有context的值应用到接受普通值并返回带context的值的函数的，用<a href="http://learnyouahaskell.com/" title="Learn You a Haskell for Great Good!">Learn You a Haskell</a>话说就是</p>
+
+<blockquote><p>If we have a fancy value and a function that takes a normal value but returns a fancy value, how do we feed that fancy value into the function?</p></blockquote>
+
+
+<p>简单说，我们的目标就是Monad的两个主要的函数：</p>
+
+<ol>
+<li>return，把值放到最小化的context中</li>
+<li>>>=（bind），把作为左操作数的Monadic值应用到作为右操作数的函数上，这个函数接受一个普通的值并返回Monadic值</li>
+</ol>
+
+
+<p>首先，我们需要一个作为Monad的数据类型，这里简单用了一个继承自list的类MonadList，当然也可以自己造一个Maybe什么的。这样，return操作就是把值放到list里，不过Python已经把这个名字给占用了，所以只好取另一个名字wrap; 而bind就是把list里的元素逐一应用到给定的函数上（aka. map!），不过>>=在Python里是赋值语句，只能用个类似的>>了（不同于Haskell的Monad的>>）。</p>
+
+<p>代码如下：</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c">#!/usr/bin/python</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">MonadList</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@staticmethod</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">MonadList</span><span class="p">([</span><span class="n">value</span><span class="p">])</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">bind</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nb">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">acc</span><span class="p">,</span> <span class="n">element</span><span class="p">:</span> <span class="n">acc</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">element</span><span class="p">)</span> <span class="ow">or</span> <span class="n">acc</span><span class="p">,</span>
+</span><span class='line'>                      <span class="nb">map</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span>
+</span><span class='line'>                      <span class="n">MonadList</span><span class="p">())</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">__rshift__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">return</span> <span class="s">&#39;MonadList: &#39;</span> <span class="o">+</span> <span class="nb">super</span><span class="p">(</span><span class="n">MonadList</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__str__</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">print</span> <span class="n">MonadList</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span> <span class="o">&gt;&gt;</span> \
+</span><span class='line'>        <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">MonadList</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">x</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span> \
+</span><span class='line'>        <span class="o">&gt;&gt;</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">MonadList</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>代码的作用很简单，就是把数组的元素先平方再加1 。。</p>
+
+<p>另外，在写这篇文章的时候还发现了另一个<a href="http://www.valuedlessons.com/2008/01/monads-in-python-with-nice-syntax.html" title="Monads in Python (with nice syntax!)">blog</a>，比较详细的讲了一个要产品化的代码里使用的Python的Monad，嗯哼。。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Python的is和==操作符用法]]></title>
