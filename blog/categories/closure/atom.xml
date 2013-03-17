@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Closure | WilburDing's Blog]]></title>
+  <link href="http://wilburding.github.com/blog/categories/closure/atom.xml" rel="self"/>
+  <link href="http://wilburding.github.com/"/>
+  <updated>2013-03-17T17:40:59+08:00</updated>
+  <id>http://wilburding.github.com/</id>
+  <author>
+    <name><![CDATA[Wilbur Ding]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Some thoughts about Design]]></title>
+    <link href="http://wilburding.github.com/blog/2013/03/17/some-thoughts-about-design/"/>
+    <updated>2013-03-17T15:37:00+08:00</updated>
+    <id>http://wilburding.github.com/blog/2013/03/17/some-thoughts-about-design</id>
+    <content type="html"><![CDATA[<p>现在游戏里有类似于红警的建筑列表面板的那种需求，简单说就是有一个面板，里面可以显示若干个按钮，每个按钮有一个图标，鼠标指上去后会显示tip，左键点击按钮就会灰化同时进入建造该建筑的状态（此时当鼠标在场景内移动时就会有一个虚的建筑跟着移动）。UI同学三下五除二给了套这样的API：
+<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">class</span> <span class="nc">BuildingPanel</span><span class="p">(</span><span class="n">Panel</span><span class="p">):</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="k">def</span> <span class="nf">setIconList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iconList</span><span class="p">)</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">setBtnEnable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">enabled</span><span class="p">)</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">asOnGetTip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>  <span class="err">＃</span> <span class="err">鼠标悬停时的回调，请求</span><span class="n">tip</span><span class="err">内容</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">asOnBtnClicked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>  <span class="c"># 鼠标点击的回调</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>当然，这套API也能够完成任务，但是确提供了一套很别扭的语义(先不说命名问题)。一般我们会按照一个面板包含很多按钮，每个按钮可以有icon有tip这样层次化的去理解这个东西，但是，这套API带来的语义确是这个面板有一列icon，你可以设某个位置的按钮的使能。如果用数据库表来类比的话，那么这套API就是以表的每一列来向你讲述这个表而不是表有很多行，每行表示一个按钮。例如，如果初始化这个面板的时候要有一些按钮默认置灰，那么代码可能就得这么写
+<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">allBuildingTypes</span> <span class="o">=</span> <span class="o">..</span>
+</span><span class='line'><span class="n">icons</span> <span class="o">=</span> <span class="n">getAllBuildingIcons</span><span class="p">(</span><span class="n">allBuildingTypes</span><span class="p">)</span>
+</span><span class='line'><span class="n">enableStates</span> <span class="o">=</span> <span class="n">calcEnableStates</span><span class="p">(</span><span class="n">allBuildingTypes</span><span class="p">,</span> <span class="n">otherArgs</span><span class="p">)</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="c"># assume buildingPanel is the panel</span>
+</span><span class='line'><span class="n">buildingPanel</span><span class="o">.</span><span class="n">setIconList</span><span class="p">(</span><span class="n">icons</span><span class="p">)</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">enabled</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">enableStates</span><span class="p">):</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">buildingPanel</span><span class="o">.</span><span class="n">setBtnEnable</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">enabled</span><span class="p">)</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+这样的代码就很难是自解释的了，它淹没在具体的实现细节里了。另外，为实现asOnGetTip/asOnBtnClicked，BuildingPanel需要保存一个管理器类的对象，并调用其相关的函数，这引入了一些依赖。而管理器类也需要自己维护一个按钮索引到建筑类型的一个映射，以在处理tip或者点击时知道是哪个建筑，多了一些负担。</p>
+
+<p>如果我们直接将文章开头的描述转换成代码，那首先需要抽象一个按钮：
+<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">class</span> <span class="nc">ButtonData</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">icon</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">enabled</span><span class="p">,</span> <span class="n">tip</span><span class="p">)</span>
+</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">icon</span> <span class="o">=</span> <span class="n">icon</span>
+</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">callback</span> <span class="o">=</span> <span class="n">callback</span>  <span class="c"># called when clicked</span>
+</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="n">enabled</span>
+</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">tip</span> <span class="o">=</span> <span class="n">tip</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>这样BuildingPanel就管理一些ButtonData就可以了：
+<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">class</span> <span class="nc">BuildingPanel</span><span class="p">(</span><span class="n">Panel</span><span class="p">):</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">buttons</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># [ButtonData]</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>之前提到的初始化代码会变成这样子：
+<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">allBuildingTypes</span> <span class="o">=</span> <span class="o">..&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">def</span> <span class="nf">onClicked</span><span class="p">(</span><span class="n">buildingType</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">doSomething</span><span class="p">(</span><span class="n">buildingType</span><span class="p">)</span>
+</span><span class='line'><span class="n">buildingPanel</span><span class="o">.</span><span class="n">setBtnEnable</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">buttons</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span class='line'><span class="k">for</span> <span class="n">buildingType</span> <span class="ow">in</span> <span class="n">allBuildingTypes</span><span class="p">:</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">buttons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ButtonData</span><span class="p">(</span>
+</span><span class='line'>    <span class="n">buildingType</span><span class="o">.</span><span class="n">icon</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">onClicked</span><span class="p">,</span> <span class="n">buildingType</span><span class="p">),</span>
+</span><span class='line'>    <span class="n">buildingType</span><span class="o">.</span><span class="n">enabled</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">buildingType</span><span class="o">.</span><span class="n">tip</span>
+</span><span class='line'><span class="p">))</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">buildingPanel</span><span class="o">.</span><span class="n">setButtons</span><span class="p">(</span><span class="n">buttons</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+（一些命名还比较蛋疼，先忍着）这样子，代码的实现算是层次比较分明了，也更具有自解释性。所以，API的设计，或者代码的每个层次，应该尽量提供一个比较自然的语义，而不是一些看起来能完成功能的随机产生物。同时，借助于直接的回调机制，管理类现在不需要去维护一个按钮索引和实际建筑的关系，BuildingPanel也不需要依赖管理类来处理鼠标点击或者tip显示问题，完全通过self.buttons自给自足，大家各自独立，不需要多知道彼此一点点。</p>
+
+<p>我觉得，以callable（functions/callable class instance/closure/partial(bind)）为基础建立起来的回调机制，是使得模块划分清晰的有力武器，主动通知方不需要了解被通知方的任何性质，被通知方也不需要按照某种硬性interface规格来使自己适应，而且callable本身就包含了足够的信息进行处理（closure或者bind或者callable class instance的形式保存），各自可以说井水不犯河水。用duck type的意思来说，在主动通知方看来，你看起来是我要的callback，那你就是我要的callback，不管你是function还是closure还是instance还是什么。在Python里，我们可以轻松的用lambda或者functools.partial，或者复杂点自己写个定义了<strong>call</strong>的类。在最新的CPP11里，也融合了大量的函数式编程的内容，包括lambda/std::function/std::bind，让我们活得轻松点。据说java8里也有lambda什么的了，但是看起来笨笨的，没那么duck typing。。</p>
+]]></content>
+  </entry>
+  
+</feed>
