@@ -4,7 +4,7 @@
   <title><![CDATA[Category: C++11 | WilburDing's Blog]]></title>
   <link href="http://wilburding.github.com/blog/categories/c-11/atom.xml" rel="self"/>
   <link href="http://wilburding.github.com/"/>
-  <updated>2013-04-10T22:06:45+08:00</updated>
+  <updated>2013-04-10T22:10:48+08:00</updated>
   <id>http://wilburding.github.com/</id>
   <author>
     <name><![CDATA[Wilbur Ding]]></name>
@@ -176,7 +176,7 @@ thread_2通过不断循环保证自己最后读到flag不为0时发生在t1的fl
 
 <p>因为我并没有太多的多线程并发开发经验，所以不知道以上有多少是在胡扯，不过我尽力保证是正确的，如果哪位发现有不对的地方，还请多谢指正。。</p>
 
-<p>最后推荐下Herb Sutter的这个talk，<a href="http://channel9.msdn.com/Shows/Going+Deep/Cpp-and-Beyond-2012-Herb-Sutter-atomic-Weapons-1-of-2">Atomic Weapons 1</a> <a href="http://channel9.msdn.com/Shows/Going+Deep/Cpp-and-Beyond-2012-Herb-Sutter-atomic-Weapons-1-of-2">Atomic Weapon2 2</a>，这篇blog大多也是参考这个talk的slides写的。</p>
+<p>最后推荐下Herb Sutter的这个talk，<a href="http://channel9.msdn.com/Shows/Going+Deep/Cpp-and-Beyond-2012-Herb-Sutter-atomic-Weapons-1-of-2">Atomic Weapons 1</a> <a href="http://channel9.msdn.com/Shows/Going+Deep/Cpp-and-Beyond-2012-Herb-Sutter-atomic-Weapons-1-of-2">Atomic Weapon 2</a>，这篇blog大多也是参考这个talk的slides写的。</p>
 ]]></content>
   </entry>
   
