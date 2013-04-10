@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Atomic | WilburDing's Blog]]></title>
+  <link href="http://wilburding.github.com/blog/categories/atomic/atom.xml" rel="self"/>
+  <link href="http://wilburding.github.com/"/>
+  <updated>2013-04-10T22:06:45+08:00</updated>
+  <id>http://wilburding.github.com/</id>
+  <author>
+    <name><![CDATA[Wilbur Ding]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[C++11的Atomic和Memory Model的一点认识]]></title>
+    <link href="http://wilburding.github.com/blog/2013/04/07/c-plus-plus-11-atomic-and-memory-model/"/>
+    <updated>2013-04-07T21:59:00+08:00</updated>
+    <id>http://wilburding.github.com/blog/2013/04/07/c-plus-plus-11-atomic-and-memory-model</id>
+    <content type="html"><![CDATA[<p>C++11已经出来好久了，最近才刚开始研究。。</p>
+
+<p>我们知道，C++一般尽量使用库提供功能特性而不是从语言本身开刀（貌似python也是这么宣称的），但这次C++11标准带来了大量的语言特性，甚至可以当成一门新语言来学，哪怕你有C++基础，这其中包括重在提高运行时性能的右值引用，提高易用性的统一初始化、lambda、自动类型推断等，增强语言功能的变参模版、用户自定义字面常量等。随着现在多核的流行，C++终于在语言层面上支持了多线程编程，提供了线程类、同步原语、原子类型以及异步相关的类型和操作。你要问为什么要在语言层面上进行支持而不是只用库提供，毕竟现在已经有大量用C++加类库写成的多线程代码了，而且似乎都工作的很好，因为 <a href="www.hpl.hp.com/techreports/2004/HPL-2004-209.pdf" title="Threads Cannot be Implemented as a Library">Threads Cannot be Implemented as a Library</a>.</p>
+
+<h1>Memory Order</h1>
+
+<p>查看STL提供的原子操作类型Atomic<T>的接口(<a href="http://en.cppreference.com/w/cpp/atomic/atomic" title="std::atomic">std::atomic</a>)可以发现，几乎每个方法都有一个类型为memory_order的默认参数，默认值是std::memory_order_seq_cst。再翻翻，发现memory_order是个枚举类型，并且还有其他几个值memory_order_relaxed/memory_order_consume/memory_order_acquire/memory_order_release/memory_order_acq_rel，这是什么东东？看下边的解释貌似(<a href="http://en.cppreference.com/w/cpp/atomic/memory_order" title="memory model">memory_order</a>)也不知道在说什么，于是猫就被害死了。。</p>
+
+<h1>Memory Model</h1>
+
+<p>Memory order具体是干嘛的呢，这要从memory model说起。不过memory model貌似有很多意思，比如我们知道的x86 cpu的段式存储就是一种<a href="http://en.wikipedia.org/wiki/Memory_address#Memory_models" title="memory model">memory model</a>. 但是这里要说的是指线程间通过内存的交互以及它们之间共享数据的使用(<a href="http://en.wikipedia.org/wiki/Memory_model_(programming)">wiki</a>)，这个主要与编译器有关了。</p>
+
+<p>编译器从计算机的远古时代发展至今，已经不是简单的把我们写的代码一股脑翻译成机器码了，而是会进行非常多的优化，有的优化是单纯将我们写的糟糕代码换成更有效的代码，比如将循环内不变量提出，有的则是为了充分利用现代CPU的特性（乱序执行神马的），这种优化在普通人看来就很费解，比如我们写了
+<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class='line'><span class="n">b</span> <span class="o">=</span> <span class="n">some_old_variable</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+编译器可能就会转换成‘
+<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">b</span> <span class="o">=</span> <span class="n">some_old_variable</span>
+</span><span class='line'><span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+如果跟踪过-O2或者更高优化级别的代码运行肯定会深有体会，代码的执行不再是按照我们写的顺序来，而是忽上忽下的，查看变量时调试器还经常告诉你变量已经被优化掉了。至于为什么要调换代码的执行顺序，可能是编译器觉得现代CPU的store操作比load操作代价大，所以先执行load再来store吧。</p>
+
+<p>优化虽好，可不是没有坏处。当然不好调试算一个，但致命问题是，这些优化都是建立在程序是在一个线程中执行的。调整语句顺序也好，调整嵌套循环的嵌套关系也好，还是把循环用变量一直放到寄存器直到循环结束才写回内存，编译器都会保证不会破坏程序的语义（当然不排除聪明过头的情况），使得优化后的程序执行结果和程序员原始代码一致。一旦多线程运行，平时默默无闻的优化就露出了马脚，比如
+<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="kt">int</span> <span class="n">sum</span><span class="p">;</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kt">void</span> <span class="n">f1</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">wait_for_some_condition</span><span class="p">();</span>
+</span><span class='line'><span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span> <span class="mi">100</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">sum</span> <span class="o">+=</span> <span class="n">i</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">std</span><span class="o">::</span><span class="n">this_thread</span><span class="o">::</span><span class="n">sleep_for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">microseconds</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="p">}</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kt">void</span> <span class="n">f2</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">wait_for_some_condition</span><span class="p">();</span>
+</span><span class='line'><span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span> <span class="mi">100</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">cout</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span> <span class="n">sum</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">std</span><span class="o">::</span><span class="n">this_thread</span><span class="o">::</span><span class="n">sleep_for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">microseconds</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+假如f1和f2各在一个线程中运行，f2能打印出来sum的计算过程吗，即使不是完全的？答案只能是不一定，如果f1执行时sum一直在寄存器里，那f2只能看到f1执行完后的sum，中间过程根本看不到。那么为了多线程程序的正确执行，是不是只要禁了编译器的优化就可以了呢？答案是不能，就算能，你愿意接受运行缓慢的程序，那编译器作者也不乐意，那么多年心血就付诸东流了，CPU也更欲哭无泪。</p>
+
+<p>为什么禁了编译器优化也不能正确运行呢，因为。。。现代CPU速度非常快，频率都在2GHz上下甚至3GHz还多，以前Pentium4都有超频到8GHz左右的，按2GHz算，一个周期就是0.5ns；而它的搭档内存又“非常慢”，核心频率大概在200MHz上下（神马，我的DDR3不是都1600Mhz吗，额，那是数据传输频率，大概就是核心频率一下可以吐8个bit而不是1个，换算回来核心频率还是200MHz，单论反应速度不比当年的SDRAM好多少），然后还有反应延迟，CPU说要某个地址的数据了，内存要慢悠悠转上几个周期先，然后才能拿到数据往CPU送，所以内存引用一次就要消耗大概100ns。CPU执行计算肯定要使用内存的数据，要是这么等内存，那太伤CPU感情了，白跑那么快，全浪费在等内存上了，所以根据程序的局部性原理(<a href="http://en.wikipedia.org/wiki/Locality_of_reference">Locality of Reference</a>)，在CPU和内存之间加上一个比内存小点但快很多的cache来保存可能要用到的数据，然后我们就获得了一个比cache略慢但是和主内存一样大的内存；内存也不甘寂寞，通过pipeline的方式使自己忙起来，尽力一次多传点数据。有了这些机制也不意味着CPU就能直接从中完全受益，还需要CPU进行很多的配合以充分利用，比如一旦cache命中失败，CPU可以执行后边的指令而不是干等，这样就有了<a href="http://en.wikipedia.org/wiki/Out-of-order_execution">乱序执行</a>，这种内存操作的性质称为<a href="http://en.wikipedia.org/wiki/Memory_ordering">Memory Ordering</a>.而且有了cache，CPU往内存写数据也要多考虑点，是直接连cache带内存都写呢还是先写cache一会再写到内存呢，如果其他cpu的cache里也有相同数据怎么办呢。这样，当多个线程同时执行时，彼此都可以看到对方的执行样子，这么赤裸裸的，怎么会不出问题呢。</p>
+
+<p>到了这份田地，正确的多线程程序该怎么写呢？于是编译器说，我知道你的程序在单线程里的情况，但是我不知道哪些数据是线程间共享的，所以，你来告诉我吧！这样，我可以在必要的时候保守的优化，一般情况下全力优化，并且只要你保证你的程序是正确同步的，那我保证程序执行时就是你要的那个样子。这样一个在程序员和语言间的约定，就是Memory Model。</p>
+
+<h1>Ordering</h1>
+
+<p>刚开始提到的memory_order那几个枚举就是告知编译器数据是在线程间共享的，并且是怎样共享的。memory_order_acquire和memory_order_release的关系大概就像mutex的acquire(lock)和release(unlock)。mutex使线程间串行执行，并且上一个线程unlock后另一个线程lock进入，保证可以看到上一个线程的所有数据修改（或曰side effect）而不会有读写操作被reorder后出问题的情况。同样的，一个atomic<T> a变量，一个线程t1 release(一般是store操作, a.store(memory_order_release))后，另一个线程t2 acquire(一般是load操作, a.load(memory_order_acquire))，那t2可以看到上个release线程的所有修改（不管是不是atomic<T>的变量），但这不是说a.load的时候会一直等另一个线程的a.store，他们只是在执行时间上有个happen-before的关系，即t1的a.store发生在t2的a.load之前，如果他们同时发生，那就说明你的代码没有正确同步，只能自求多福了。比如
+<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">flag</span> <span class="o">=</span> <span class="n">ATOMIC_VAR_INIT</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="err">；</span>
+</span><span class='line'><span class="kt">int</span> <span class="n">data</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kt">void</span> <span class="n">thread_1</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">data</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'><span class="n">flag</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">memory_order_release</span><span class="p">);</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="p">}</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kt">void</span> <span class="n">thread_2</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="k">while</span><span class="p">(</span><span class="n">flag</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_acquire</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">;</span>
+</span><span class='line'><span class="n">assert</span><span class="p">(</span><span class="n">data</span> <span class="o">==</span> <span class="mi">1</span><span class="p">);</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="p">}</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+thread_2通过不断循环保证自己最后读到flag不为0时发生在t1的flag.store之后（因果关系）。从这里也可以看出，atomic<T>的acquire/release时更多的是在起同步作用。</p>
+
+<p>为了达到acquire/release的要求，编译器会对这样的操作比较小心。release时，编译器保证不会把写操作移到它后边，否则其他线程就看不到这个修改了；acquire时，不会把其后的读操作移到它前面，否则读到的就是旧数据。剩下的情况，编译器就可以自由移动读写操作了。除了编译器，有时也需要CPU的配合，因为它执行的时候也会reorder指令，所幸的是x86/x64平台上，mov指令是具有acquire/release语义的，所以我们基本没有什么性能损失。</p>
+
+<p>除此之外还有几个其他的memory_order枚举。</p>
+
+<ul>
+<li>memory_order_relaxed说明这个操作除了是原子的外，周围的操作随便移动，比较适合做计数器。</li>
+<li>memory_order_acq_rel基本是memory_order_acquire和memory_order_release的合体。</li>
+<li>memory_order_scq_cst是memory_order_acq_rel的加强版，除了有acq_rel语义，还保证是<a href="http://en.wikipedia.org/wiki/Sequential_consistency">sequencially-consistent</a>(人家Lamport同学70年代就在研究这个了。。)的，这是atomic<T>各种操作的默认memory_order，也是执行代价最大的。选memory_order_scq_cst做默认参数是因为它是最容易用的memory_order，并且性能要比用mutex好点，如果性能的确成为瓶颈可以换其他memory_order慢慢调优，具体可以看这个<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2177.html">paper</a>。</li>
+<li>memory_order_consume是memory_order_acquire的弱化版，它只保证不把跟当前load的变量有依赖的变量reorder，没依赖关系的随便移动。比如上边的代码中，data对flag没有依赖，所以thread_2里flag.load换成memory_order_consume后，读到的data就不能保证是1了。但是经常有一些情况是比较合适的，比如通过指针传递一些数据的情况。</li>
+</ul>
+
+
+<p>当然，你知道了这些memory_order后，也不一定意味着能用它们写出来正确的代码，因为你在reason代码的时候基本是在考虑各种代码reorder的排列组合，当然也可能是我比较stupid的。。但是人家Herb Sutter至少把memory_order_consume列成了C++语言的专家级特性呢。。</p>
+
+<h1>Finally</h1>
+
+<p>因为我并没有太多的多线程并发开发经验，所以不知道以上有多少是在胡扯，不过我尽力保证是正确的，如果哪位发现有不对的地方，还请多谢指正。。</p>
+
+<p>最后推荐下Herb Sutter的这个talk，<a href="http://channel9.msdn.com/Shows/Going+Deep/Cpp-and-Beyond-2012-Herb-Sutter-atomic-Weapons-1-of-2">Atomic Weapons 1</a> <a href="http://channel9.msdn.com/Shows/Going+Deep/Cpp-and-Beyond-2012-Herb-Sutter-atomic-Weapons-1-of-2">Atomic Weapon2 2</a>，这篇blog大多也是参考这个talk的slides写的。</p>
+]]></content>
+  </entry>
+  
+</feed>
