@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Category: Closure - WilburDing's Blog</title>
+  <title>什么是变量 - WilburDing's Blog</title>
   <meta name="author" content="Wilbur Ding">
 
   
-  <meta name="description" content="Category: Closure">
+  <meta name="description" content="当我们初学计算机语言的时候，就接触到了变量的概念，当然，那时候不可能给出精确的定义，很多书在讲的时候就像大家看到了变量这个词大概就能知道它是什么一样无需解释，比如《C语言程序设计》里直接就提到了变量的说明而没有说什么是变量。当我们带着这种模糊的感觉变成“有经验”的程序员时， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://wilburding.github.comblog/categories/closure/">
+  <link rel="canonical" href="http://wilburding.github.com/blog/2013/05/05/what-is-a-variable/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -63,36 +63,126 @@
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Category: Closure</h1>
+    
+      <h1 class="entry-title">什么是变量</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-05T14:33:00+08:00" pubdate data-updated="true">May 5<span>th</span>, 2013</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
     
   </header>
-  
-  <div id="blog-archives" class="category">
 
 
+<div class="entry-content"><p>当我们初学计算机语言的时候，就接触到了变量的概念，当然，那时候不可能给出精确的定义，很多书在讲的时候就像大家看到了变量这个词大概就能知道它是什么一样无需解释，比如《C语言程序设计》里直接就提到了变量的说明而没有说什么是变量。当我们带着这种模糊的感觉变成“有经验”的程序员时，似乎已经没人在意变量究竟是什么了。人世间的悲哀莫不如此……</p>
 
-  
-  <h2>2013</h2>
+<p>Wikipedia里给的Variable的定义如下：</p>
 
-<article>
-  
-<h1><a href="/blog/2013/03/17/some-thoughts-about-design/">关于设计的一点思考</a></h1>
-<time datetime="2013-03-17T15:37:00+08:00" pubdate><span class='month'>Mar</span> <span class='day'>17</span> <span class='year'>2013</span></time>
+<blockquote><p>In computer programming, a variable is a storage location and an associated symbolic name (an identifier) which contains some known or unknown quantity or information, a value.</p></blockquote>
 
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/closure/'>Closure</a>, <a class='category' href='/blog/categories/design/'>Design</a>, <a class='category' href='/blog/categories/thoughts/'>Thoughts</a></span>
-</footer>
+<p>翻译下就是说，变量是一个存储位置和一个关联的符号名字，这个存储位置包含了一些已知或未知的量或者信息，即值。在C语言里，变量是如下三方面的统一体：</p>
+
+<ol>
+<li>名字（运行时会变成数字化的名字，内存地址）</li>
+<li>存储位置（某一位置开始的一定大小的存储空间）</li>
+<li>该存储位置里内容的解释方式（即类型，整数、浮点数还是字符串？）</li>
+</ol>
 
 
-</article>
+<p>任意一部分单独都不是变量。当我们给一个变量a赋值另一个值时，改变的是a对应的存储位置里的内容，赋值前后是同一个a，因为1、2、3都没有变。</p>
 
+<p>这个定义适用于C这种语言，它面向的是字节的世界。由于一个字节的表达能力有限，我们需要若干个字节来表达一些复杂的概念，所以一个变量需要确定它在内存地址中的位置、多大以及解释方式。而对于Python这种语言，它抽象的是对象的世界，没有更底层的字节这样的东西，那Python中的变量是什么呢？</p>
+
+<p>如果我们把Python语言的内存空间视为对象的空间，即不象C语言那样内存地址指向的是字节而是Python对象，甚至这个地址也不会像C语言的那样是数字而可能就是源代码里的名字，那Python的对象就是如下两方面的统一体：</p>
+
+<ol>
+<li>名字</li>
+<li>存储位置（可以存放任意的对象）</li>
+</ol>
+
+
+<p>所以，Python里给变量赋值就是把对象放到变量关联的存储位置上。如从CPython的实现角度讲，函数局部变量存储位置对应函数的f_locals数组下标，赋值就是把对应下标位置的元素指向新对象。</p>
+
+<p>绕了一圈，发现Wikipedia里的定义算是普适的，只是“存储位置”的概念也要看成抽象的，而不是简单的C语言面对的内存位置。</p>
 </div>
 
+
+  <footer>
+    <p class="meta">
+      
   
+
+<span class="byline author vcard">Posted by <span class="fn">Wilbur Ding</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-05T14:33:00+08:00" pubdate data-updated="true">May 5<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/c-/'>C++</a>, <a class='category' href='/blog/categories/computer-language/'>Computer Language</a>, <a class='category' href='/blog/categories/python/'>Python</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://wilburding.github.com/blog/2013/05/05/what-is-a-variable/" data-via="WilburDing" data-counturl="http://wilburding.github.com/blog/2013/05/05/what-is-a-variable/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/04/07/c-plus-plus-11-atomic-and-memory-model/" title="Previous Post: C++11的Atomic和Memory Model的一点认识">&laquo; C++11的Atomic和Memory Model的一点认识</a>
+      
+      
+    </p>
+  </footer>
 </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
 
@@ -192,7 +282,10 @@
       var disqus_shortname = 'wilburdingsblog';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://wilburding.github.com/blog/2013/05/05/what-is-a-variable/';
+        var disqus_url = 'http://wilburding.github.com/blog/2013/05/05/what-is-a-variable/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
